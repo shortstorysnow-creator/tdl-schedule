@@ -51,7 +51,7 @@ function durationsDocRef() {
 function officialLinks(park, dateStr) {
   const ymd = dateStr.replace(/-/g, '');
   return {
-    calendar: `https://www.tokyodisneyresort.jp/${park}/daily/calendar/${ymd}/`,
+    calendar: `https://www.tokyodisneyresort.jp/${park}/daily/calendar/${ymd}`,
     restaurant: `https://www.tokyodisneyresort.jp/${park}/restaurant/list.html`,
     attraction: `https://www.tokyodisneyresort.jp/${park}/attraction.html`
   };

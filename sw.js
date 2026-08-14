@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tdl-schedule-v2';
+const CACHE_NAME = 'tdl-schedule-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -24,20 +24,19 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// ネットワークがあれば常に最新のコードを使う(network-first)。
+// パーク内などオフライン時のみキャッシュにフォールバックする。
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   // Firebase/Firestoreなど外部オリジンへの通信はService Workerを介さずそのまま流す
   if (new URL(event.request.url).origin !== location.origin) return;
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return res;
-        })
-        .catch(() => cached);
-      return cached || fetchPromise;
-    })
+    fetch(event.request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return res;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

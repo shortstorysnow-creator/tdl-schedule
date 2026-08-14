@@ -46,14 +46,14 @@ function durationsDocRef() {
 
 // ---- 定数 ----
 
-// 当日のパーク情報ページは /daily/calendar/YYYYMMDD/ の形式で日付を指定できる。
-// レストラン/アトラクション一覧ページの日付指定URLは未確認のため、ひとまず日付なしの固定URL。
+// 当日のパーク情報ページは /daily/calendar/YYYYMMDD の形式で日付を指定できる。
+// レストラン/アトラクション一覧ページは #day=YYYYMMDD のハッシュで日付を指定できる。
 function officialLinks(park, dateStr) {
   const ymd = dateStr.replace(/-/g, '');
   return {
     calendar: `https://www.tokyodisneyresort.jp/${park}/daily/calendar/${ymd}`,
-    restaurant: `https://www.tokyodisneyresort.jp/${park}/restaurant/list.html`,
-    attraction: `https://www.tokyodisneyresort.jp/${park}/attraction.html`
+    restaurant: `https://www.tokyodisneyresort.jp/${park}/restaurant/list.html#day=${ymd}`,
+    attraction: `https://www.tokyodisneyresort.jp/${park}/attraction.html#day=${ymd}`
   };
 }
 

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TDLスケジュール</title>
+<meta name="theme-color" content="#1b3a6b">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header">
+  <div class="header-top">
+    <h1>TDLスケジュール</h1>
+    <input type="date" id="date-input">
+  </div>
+  <div class="park-switch" id="park-switch">
+    <button data-park="tdl" class="active">ディズニーランド</button>
+    <button data-park="tds">ディズニーシー</button>
+  </div>
+  <div class="room-bar">
+    <span id="sync-status" class="sync-status">接続中…</span>
+    <span id="room-code-label" class="room-code-label"></span>
+    <button id="share-link-btn" class="room-share-btn" type="button">家族に共有</button>
+  </div>
+</header>
+
+<main>
+  <section id="import-section">
+    <details id="import-details" open>
+      <summary>① データ取り込み</summary>
+      <p class="hint">公式ページを開いて全選択(長押し→すべてを選択、またはPCはCtrl+A)→コピーし、下の欄に貼り付けてください。</p>
+      <div class="import-grid">
+        <div class="import-box">
+          <label>当日のパーク情報<br><a id="link-calendar" target="_blank" rel="noopener">公式ページを開く ↗</a></label>
+          <textarea id="paste-calendar" placeholder="ここに貼り付け（開園時間・ショー/パレード・グリーティング）"></textarea>
+        </div>
+        <div class="import-box">
+          <label>レストラン一覧<br><a id="link-restaurant" target="_blank" rel="noopener">公式ページを開く ↗</a></label>
+          <textarea id="paste-restaurant" placeholder="ここに貼り付け（レストラン営業時間）"></textarea>
+        </div>
+        <div class="import-box">
+          <label>アトラクション一覧<br><a id="link-attraction" target="_blank" rel="noopener">公式ページを開く ↗</a></label>
+          <textarea id="paste-attraction" placeholder="ここに貼り付け（アトラクション運営時間）"></textarea>
+        </div>
+      </div>
+      <button id="parse-btn" class="primary-btn">解析してリストに反映</button>
+      <p id="parse-result" class="parse-result"></p>
+    </details>
+  </section>
+
+  <section id="duration-section">
+    <details id="duration-details">
+      <summary>④ ショー所要時間の設定（初回のみ・任意）</summary>
+      <p class="hint">各ショーの詳細ページ（例: パレード/ショー一覧から選択）を開いて全選択→コピーし、下に貼り付けてください。複数ページ分をまとめて貼り付けてもOK。一度設定すれば以後ずっと使われます。</p>
+      <textarea id="paste-duration" placeholder="ショー詳細ページの内容をここに貼り付け"></textarea>
+      <button id="save-duration-btn" class="secondary-btn">所要時間を読み取って保存</button>
+      <p id="duration-result" class="parse-result"></p>
+    </details>
+  </section>
+
+  <nav class="tabs" id="main-tabs">
+    <button data-tab="list" class="active">② 一覧</button>
+    <button data-tab="schedule">③ マイスケジュール</button>
+  </nav>
+
+  <section id="tab-list" class="tab-panel">
+    <div class="filter-bar">
+      <input type="search" id="search-input" placeholder="名前で検索">
+      <div class="type-filters" id="type-filters">
+        <button data-type="all" class="active">すべて</button>
+        <button data-type="show">ショー</button>
+        <button data-type="greeting">グリーティング</button>
+        <button data-type="attraction">アトラクション</button>
+        <button data-type="restaurant">レストラン</button>
+      </div>
+    </div>
+    <div id="item-list" class="item-list"></div>
+  </section>
+
+  <section id="tab-schedule" class="tab-panel" hidden>
+    <button id="add-custom-btn" class="secondary-btn">自由入力で追加（休憩・移動など）</button>
+
+    <div id="gantt-empty" class="empty-msg" hidden>予定を追加するとタイムチャートが表示されます。</div>
+    <div id="gantt-wrap" class="gantt-wrap" hidden>
+      <div class="gantt-legend">
+        <span class="gantt-legend-item"><i class="gantt-swatch" data-type="attraction"></i>アトラクション</span>
+        <span class="gantt-legend-item"><i class="gantt-swatch" data-type="show"></i>ショー</span>
+        <span class="gantt-legend-item"><i class="gantt-swatch" data-type="restaurant"></i>レストラン</span>
+        <span class="gantt-legend-item"><i class="gantt-swatch" data-type="greeting"></i>グリーティング</span>
+        <span class="gantt-legend-item"><i class="gantt-swatch" data-type="custom"></i>自由入力</span>
+      </div>
+      <div class="gantt-scroll" id="gantt-scroll">
+        <div class="gantt-axis-row">
+          <div class="gantt-label-spacer"></div>
+          <div class="gantt-axis" id="gantt-axis"></div>
+        </div>
+        <div id="gantt-rows"></div>
+      </div>
+    </div>
+
+    <div id="schedule-list" class="schedule-list"></div>
+  </section>
+</main>
+
+<div id="add-modal" class="modal" hidden>
+  <div class="modal-card">
+    <h2 id="modal-title">スケジュールに追加</h2>
+
+    <div class="occupancy-block">
+      <div class="occupancy-label">現在の予定（色つき＝埋まっている時間 / 枠線＝これから追加する時間）</div>
+      <div class="occupancy-strip" id="modal-occupancy-strip"></div>
+      <div class="occupancy-ticks" id="modal-occupancy-ticks"></div>
+    </div>
+    <p id="modal-conflict-warning" class="conflict-warning" hidden></p>
+
+    <label>名前<input type="text" id="modal-name"></label>
+    <label>時刻の候補
+      <select id="modal-time-select"></select>
+    </label>
+    <label>開始時刻<input type="time" id="modal-start"></label>
+    <label>終了時刻（ショーは自動入力・編集可）<input type="time" id="modal-end"></label>
+    <label>メモ<input type="text" id="modal-note" placeholder="任意"></label>
+    <div class="modal-actions">
+      <button id="modal-cancel" class="secondary-btn">キャンセル</button>
+      <button id="modal-confirm" class="primary-btn">追加する</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

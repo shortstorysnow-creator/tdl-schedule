@@ -46,18 +46,16 @@ function durationsDocRef() {
 
 // ---- 定数 ----
 
-const OFFICIAL_LINKS = {
-  tdl: {
-    calendar: 'https://www.tokyodisneyresort.jp/tdl/daily/calendar.html',
-    restaurant: 'https://www.tokyodisneyresort.jp/tdl/restaurant/list.html',
-    attraction: 'https://www.tokyodisneyresort.jp/tdl/attraction.html'
-  },
-  tds: {
-    calendar: 'https://www.tokyodisneyresort.jp/tds/daily/calendar.html',
-    restaurant: 'https://www.tokyodisneyresort.jp/tds/restaurant/list.html',
-    attraction: 'https://www.tokyodisneyresort.jp/tds/attraction.html'
-  }
-};
+// 当日のパーク情報ページは /daily/calendar/YYYYMMDD/ の形式で日付を指定できる。
+// レストラン/アトラクション一覧ページの日付指定URLは未確認のため、ひとまず日付なしの固定URL。
+function officialLinks(park, dateStr) {
+  const ymd = dateStr.replace(/-/g, '');
+  return {
+    calendar: `https://www.tokyodisneyresort.jp/${park}/daily/calendar/${ymd}/`,
+    restaurant: `https://www.tokyodisneyresort.jp/${park}/restaurant/list.html`,
+    attraction: `https://www.tokyodisneyresort.jp/${park}/attraction.html`
+  };
+}
 
 const AREA_LIST = [
   'ワールドバザール', 'アドベンチャーランド', 'ウエスタンランド', 'クリッターカントリー',
@@ -343,7 +341,7 @@ function saveSchedule() { writeDayDoc(); }
 // ---- レンダリング ----
 
 function updateOfficialLinks() {
-  const links = OFFICIAL_LINKS[state.park];
+  const links = officialLinks(state.park, state.date);
   document.getElementById('link-calendar').href = links.calendar;
   document.getElementById('link-restaurant').href = links.restaurant;
   document.getElementById('link-attraction').href = links.attraction;
@@ -844,6 +842,7 @@ function init() {
   document.getElementById('date-input').value = state.date;
   document.getElementById('date-input').addEventListener('change', (e) => {
     state.date = e.target.value || todayStr();
+    updateOfficialLinks();
     subscribeDayDoc();
   });
 

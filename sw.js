@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tdl-schedule-v3';
+const CACHE_NAME = 'tdl-schedule-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -31,7 +31,7 @@ self.addEventListener('fetch', (event) => {
   // Firebase/Firestoreなど外部オリジンへの通信はService Workerを介さずそのまま流す
   if (new URL(event.request.url).origin !== location.origin) return;
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: 'no-store' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));

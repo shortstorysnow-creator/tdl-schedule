@@ -530,6 +530,7 @@ main {
   display: flex;
   position: sticky;
   top: 0;
+  width: max-content;
 }
 
 .gantt-label-spacer {
@@ -572,6 +573,7 @@ main {
   display: flex;
   align-items: stretch;
   min-height: 44px;
+  width: max-content;
   border-top: 1px solid var(--chart-grid);
 }
 
